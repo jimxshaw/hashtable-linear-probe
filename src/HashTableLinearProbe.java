@@ -23,9 +23,40 @@ public class HashTableLinearProbe<K, V> {
         return this.count;
     }
 
+    // Checks if the key exists in the table. If yes, return the value of
+    // the key or null if the key doesn't exist.
+    public V find(K key) {
+        // hashfunction(key) = ((hash index) + f(i)) % |TableSize|
+        // f(i) = i, from i = 0 ... i = |TableSize|
+        int hashIndex = getHashIndex(key);
+        int i = 0;
+
+        while (i < this.size) {
+            int probeIndex = (hashIndex + i) % this.size;
+
+            HashEntry<K, V> entry = table[probeIndex];
+
+            if (entry == null) {
+                return null;
+            }
+            // Entry must exist and its key must match input key.
+            else if (!entry.isDeleted() && entry.getKey().equals(key)) {
+                return entry.getValue();
+            }
+
+            // Increment i during linear probing to resolve collisions.
+            i++;
+        }
+
+        // Found nothing after probing the entire table.
+        return null;
+    }
+
     // Calculates the base hash index for the input key.
-    // String key: sums the ASCII values of the chars and use that as hash.
+    // This hash index will later be added to f(i).
+    // E.g. hashfunction(key) = ((hash index) + f(i)) % |TableSize|
     // Integer key: uses the int value directly.
+    // String key: sums the ASCII values of the chars and use that as hash.
     // Result is mapped to the table size.
     private int getHashIndex(K key) {
         int hash;
