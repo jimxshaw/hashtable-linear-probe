@@ -23,6 +23,30 @@ public class HashTableLinearProbe<K, V> {
         return this.count;
     }
 
+    // Calculates the base hash index for the input key.
+    // String key: sums the ASCII values of the chars and use that as hash.
+    // Integer key: uses the int value directly.
+    // Result is mapped to the table size.
+    private int getHashIndex(K key) {
+        int hash;
+
+        if (key instanceof Integer) {
+            hash = (Integer) key;
+        }
+        else if (key instanceof String keyString) {
+            hash = 0;
+
+            for (int i = 0; i < keyString.length(); i++) {
+                hash += keyString.charAt(i);
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Key must be either String or Integer.");
+        }
+
+        return hash % this.size;
+    }
+
     public int getSize() {
         return this.size;
     }
