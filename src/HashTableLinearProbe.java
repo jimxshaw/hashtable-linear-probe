@@ -25,6 +25,33 @@ public class HashTableLinearProbe<K, V> {
 
     // Returns the hash value for the input key or -1 if not found.
     public int getHashValue(K key) {
+        return getProbeIndex(key);
+    }
+
+    // Checks if the key exists in the table. If yes, return the value of
+    // that key's entry or null if the key doesn't exist.
+    public V find(K key) {
+        int probeIndex = getProbeIndex(key);
+
+        return probeIndex == -1 ? null : table[probeIndex].getValue();
+    }
+
+    // Performs lazy deletion by marking the entry as deleted.
+    // Returns true if deleted, false if it's not found in the table.
+    public boolean delete(K key) {
+        int probeIndex = getProbeIndex(key);
+
+        if (probeIndex == -1) {
+            return false;
+        }
+
+        table[probeIndex].delete();
+
+        return true;
+    }
+
+    // Helper function to do linear probing to get the probe index.
+    private int getProbeIndex(K key) {
         // hashfunction(key) = ((base index) + f(i)) % |TableSize|
         // f(i) = i, from i = 0 ... i = |TableSize|
         int baseIndex = getBaseHashIndex(key);
@@ -34,54 +61,22 @@ public class HashTableLinearProbe<K, V> {
         // size limit to find the key.
         while (i < this.size) {
             int probeIndex = (baseIndex + i) % this.size;
-
             HashEntry<K, V> entry = table[probeIndex];
 
             if (entry == null) {
                 return -1;
+
             }
             // Entry must exist and its key must match input key.
             else if (!entry.isDeleted() && entry.getKey().equals(key)) {
                 return probeIndex;
             }
 
-            // Increment i during linear probing to resolve collisions.
             i++;
         }
 
         // Not found.
         return -1;
-    }
-
-    // Checks if the key exists in the table. If yes, return the value of
-    // the key or null if the key doesn't exist.
-    public V find(K key) {
-        // hashfunction(key) = ((base index) + f(i)) % |TableSize|
-        // f(i) = i, from i = 0 ... i = |TableSize|
-        int baseIndex = getBaseHashIndex(key);
-        int i = 0;
-
-        // Linear probes through the table up to the
-        // size limit to find the key's value.
-        while (i < this.size) {
-            int probeIndex = (baseIndex + i) % this.size;
-
-            HashEntry<K, V> entry = table[probeIndex];
-
-            if (entry == null) {
-                return null;
-            }
-            // Entry must exist and its key must match input key.
-            else if (!entry.isDeleted() && entry.getKey().equals(key)) {
-                return entry.getValue();
-            }
-
-            // Increment i during linear probing to resolve collisions.
-            i++;
-        }
-
-        // Found nothing after probing the entire table.
-        return null;
     }
 
     // Calculates the base hash index for the input key.
