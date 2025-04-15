@@ -23,28 +23,104 @@ public class HashTableLinearProbe<K, V> {
         return this.count;
     }
 
+    // Returns the hash value for the input key or -1 if not found.
+    public int getHashValue(K key) {
+        return getProbeIndex(key);
+    }
+
+    // Checks if the key exists in the table. If yes, return the value of
+    // that key's entry or null if the key doesn't exist.
+    public V find(K key) {
+        int probeIndex = getProbeIndex(key);
+
+        return probeIndex == -1 ? null : table[probeIndex].getValue();
+    }
+
+    // Performs lazy deletion by marking the entry as deleted.
+    // Returns true if deleted, false if it's not found in the table.
+    public boolean delete(K key) {
+        int probeIndex = getProbeIndex(key);
+
+        if (probeIndex == -1) {
+            return false;
+        }
+
+        table[probeIndex].delete();
+
+        return true;
+    }
+
+    // Helper function to do linear probing to get the probe index.
+    private int getProbeIndex(K key) {
+        // hashfunction(key) = ((base index) + f(i)) % |TableSize|
+        // f(i) = i, from i = 0 ... i = |TableSize|
+        int baseIndex = getBaseHashIndex(key);
+        int i = 0;
+
+        // Linear probes through the table up to the
+        // size limit to find the key.
+        while (i < this.size) {
+            int probeIndex = (baseIndex + i) % this.size;
+            HashEntry<K, V> entry = table[probeIndex];
+
+            if (entry == null) {
+                return -1;
+
+            }
+            // Entry must exist and its key must match input key.
+            else if (!entry.isDeleted() && entry.getKey().equals(key)) {
+                return probeIndex;
+            }
+
+            i++;
+        }
+
+        // Not found.
+        return -1;
+    }
+
     // Calculates the base hash index for the input key.
-    // String key: sums the ASCII values of the chars and use that as hash.
+    // This hash index will later be added to f(i).
+    // E.g. hashfunction(key) = ((hash index) + f(i)) % |TableSize|
     // Integer key: uses the int value directly.
+    // String key: sums the ASCII values of the chars and use that as hash.
     // Result is mapped to the table size.
-    private int getHashIndex(K key) {
-        int hash;
+    private int getBaseHashIndex(K key) {
+        validateKey(key);
+
+        int base;
 
         if (key instanceof Integer) {
-            hash = (Integer) key;
+            base = (Integer) key;
         }
-        else if (key instanceof String keyString) {
-            hash = 0;
+        // The key, after being validated, must be a String if
+        // it's not an int.
+        else {
+            base = 0;
+            String keyString = (String) key;
 
             for (int i = 0; i < keyString.length(); i++) {
-                hash += keyString.charAt(i);
+                base += keyString.charAt(i);
             }
         }
-        else {
-            throw new IllegalArgumentException("Key must be either String or Integer.");
-        }
 
-        return hash % this.size;
+        // Converts the input key into a valid table index so it'll always be in bounds.
+        // E.g. Default table size is 3. Base of 42 % 3 = 0, base of 530 % 3 = 2, etc.
+        return base % this.size;
+    }
+
+    // Input key must exist and must be either a string or int.
+    private void validateKey(K key) {
+        if (key == null || (!(key instanceof String) && !(key instanceof Integer))) {
+            throw new IllegalArgumentException("Key must be not be null and it must be String or Integer.");
+        }
+    }
+
+    // Input value must exist.
+    private void validateValue(V value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value must not be null.");
+        }
     }
 
     public int getSize() {
