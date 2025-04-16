@@ -23,13 +23,15 @@ public class HashTableLinearProbe<K, V> {
         return this.count;
     }
 
-//    public boolean insert(K key, V value) {
-//        // Only rehash if the table is full.
-//        // Rehash will double the table's size and purge deleted entries.
-//        if (this.count == this.size) {
-//            rehash();
-//        }
-//    }
+    public boolean insert(K key, V value) {
+        // Only rehash if the table is full.
+        // Rehash will double the table's size and purge deleted entries.
+        if (this.count == this.size) {
+            rehash();
+        }
+
+        return false;
+    }
 
     // Rehash will double the previous table size. It only re-inserts
     // active entries. Reset the count field so the new table
