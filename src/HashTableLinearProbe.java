@@ -23,6 +23,35 @@ public class HashTableLinearProbe<K, V> {
         return this.count;
     }
 
+//    public boolean insert(K key, V value) {
+//        // Only rehash if the table is full.
+//        // Rehash will double the table's size and purge deleted entries.
+//        if (this.count == this.size) {
+//            rehash();
+//        }
+//    }
+
+    // Rehash will double the previous table size. It only re-inserts
+    // active entries. Reset the count field so the new table
+    // isn't full during rehash.
+    private void rehash() {
+        HashEntry<K, V>[] previousTable = this.table;
+        int previousSize = this.size;
+
+        this.size = previousSize * 2; // Double the size.
+        this.table = new HashEntry[this.size];
+        this.count = 0; // Reset the count back to 0.
+
+        for (int i = 0; i < previousSize; i++) {
+            HashEntry<K, V> entry = previousTable[i];
+
+            // Entry must exist and be active.
+            if (entry != null && !entry.isDeleted()) {
+                insert(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     // Returns the hash value for the input key or -1 if not found.
     public int getHashValue(K key) {
         return getProbeIndex(key);
