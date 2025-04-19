@@ -5,6 +5,8 @@ public class HashTableLinearProbe<K, V> {
     private int size; // Total number of slots (array length).
     private int count; // Count of active, non-deleted entries.
 
+    // Suppresses the warning from generic array creation
+    // due to our safe generic casting of HashEntry<K, V>[].
     @SuppressWarnings("unchecked")
     public HashTableLinearProbe() {
         this.size = DEFAULT_SIZE;
@@ -81,6 +83,7 @@ public class HashTableLinearProbe<K, V> {
     // Rehash will double the previous table size. It only re-inserts
     // active entries. Reset the count field so the new table
     // isn't full during rehash.
+    @SuppressWarnings("unchecked")
     private void rehash() {
         HashEntry<K, V>[] previousTable = this.table;
         int previousSize = this.size;
