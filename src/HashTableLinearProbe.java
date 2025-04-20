@@ -73,6 +73,9 @@ public class HashTableLinearProbe<K, V> {
                 // Remember the first deleted index to reuse later.
                 firstDeletedIndex = probeIndex;
             }
+
+            // Must increment i to continue linear probing.
+            i++;
         }
 
         // If we reach this point then that means all slots were either
