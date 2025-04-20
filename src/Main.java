@@ -1,4 +1,4 @@
-public class P3Driver {
+public class Main {
     public static void main(String[] args) {
         /* INTEGER KEY TABLE */
         System.out.println("\n===== INTEGER KEY TABLE =====");
