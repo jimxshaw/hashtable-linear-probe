@@ -26,9 +26,13 @@ public class HashTableLinearProbe<K, V> {
     }
 
     // Insert method inserts an entry, rehashes if the table is full or
-    // throws an error messsage if the key is invalid or null and returns
+    // throws an error message if the key is invalid or null and returns
     // true upon successful insertion or false if duplicate entry.
     public boolean insert(K key, V value) {
+        // Validate the value here.
+        // Validate the key will take place inside getBaseHashIndex(key).
+        validateValue(value);
+
         // Only rehash if the table is full.
         // Rehash will double the table's size and purge deleted entries.
         if (this.count == this.size) {
