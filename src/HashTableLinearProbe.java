@@ -5,6 +5,8 @@ public class HashTableLinearProbe<K, V> {
     private int size; // Total number of slots (array length).
     private int count; // Count of active, non-deleted entries.
 
+    // Suppresses the warning from generic array creation
+    // due to our safe generic casting of HashEntry<K, V>[].
     @SuppressWarnings("unchecked")
     public HashTableLinearProbe() {
         this.size = DEFAULT_SIZE;
@@ -23,6 +25,9 @@ public class HashTableLinearProbe<K, V> {
         return this.count;
     }
 
+    // Insert method inserts an entry, rehashes if the table is full or
+    // throws an error messsage if the key is invalid or null and returns
+    // true upon successful insertion or false if duplicate entry.
     public boolean insert(K key, V value) {
         // Only rehash if the table is full.
         // Rehash will double the table's size and purge deleted entries.
@@ -30,12 +35,58 @@ public class HashTableLinearProbe<K, V> {
             rehash();
         }
 
+        int baseIndex = getBaseHashIndex(key);
+
+        // We are allowed to write over deleted entries.
+        // Variable is initialized to a sentinel value of -1 which
+        // means no deleted slots have been found yet.
+        int firstDeletedIndex = -1;
+
+        int i = 0;
+
+        // If we find a deleted entry and firstDeletedIndex is still -1 then
+        // we set aside that slot by assigning probeIndex to it.
+        // We don't insert yet because we might still find a duplicate or
+        // find a real empty slot.
+        // When we hit a null then we reuse the firstDeletedIndex that was found earlier
+        // or just insert into the current null slot if we never found a deleted slot.
+        while (i < this.size) {
+            int probeIndex = (baseIndex + i) % this.size;
+            HashEntry<K, V> entry = table[probeIndex];
+
+            if (entry == null) {
+                // Insert into the first deleted slot that's
+                // found or insert here.
+                int indexToInsert = (firstDeletedIndex != -1) ? firstDeletedIndex : probeIndex;
+                table[indexToInsert] = new HashEntry<>(key, value);
+                this.count++;
+
+                return true;
+            }
+
+            if (!entry.isDeleted() && entry.getKey().equals(key)) {
+                // Found duplicate key.
+                return false;
+            }
+
+            if (entry.isDeleted() && firstDeletedIndex == -1) {
+                // Remember the first deleted index to reuse later.
+                firstDeletedIndex = probeIndex;
+            }
+
+            // Must increment i to continue linear probing.
+            i++;
+        }
+
+        // If we reach this point then that means all slots were either
+        // foll or deleted. It should never happen due to rehashing.
         return false;
     }
 
     // Rehash will double the previous table size. It only re-inserts
     // active entries. Reset the count field so the new table
     // isn't full during rehash.
+    @SuppressWarnings("unchecked")
     private void rehash() {
         HashEntry<K, V>[] previousTable = this.table;
         int previousSize = this.size;
@@ -49,7 +100,13 @@ public class HashTableLinearProbe<K, V> {
 
             // Entry must exist and be active.
             if (entry != null && !entry.isDeleted()) {
-                insert(entry.getKey(), entry.getValue());
+                // Calling insert during rehash should always succeed
+                // but throw an exception just in case.
+                boolean successfulInsert = insert(entry.getKey(), entry.getValue());
+
+                if (!successfulInsert) {
+                    throw new IllegalStateException("Rehash failed to re-insert an active entry.");
+                }
             }
         }
     }
